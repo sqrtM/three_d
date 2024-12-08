@@ -4,7 +4,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::video::Window;
-use std::ops::Mul;
+use std::ops::{Add, Mul, Sub};
 
 const Z_NEAR: f32 = 0.1;
 const Z_FAR: f32 = 1000.0;
@@ -16,7 +16,7 @@ fn fov_rad() -> f32 {
     1.0 / f32::tan(f32::to_radians(FOV * 0.5))
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 struct Vec3d {
     x: f32,
     y: f32,
@@ -26,6 +26,46 @@ struct Vec3d {
 impl Vec3d {
     fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3d { x, y, z }
+    }
+
+    fn dot_product(&self, rhs: Vec3d) -> f32 {
+        (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
+    }
+}
+
+impl Add<Vec3d> for Vec3d {
+    type Output = Self;
+
+    fn add(self, rhs: Vec3d) -> Self::Output {
+        Vec3d {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
+impl Sub<Vec3d> for Vec3d {
+    type Output = Self;
+
+    fn sub(self, rhs: Vec3d) -> Self::Output {
+        Vec3d {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+        }
+    }
+}
+
+impl Mul<Vec3d> for Vec3d {
+    type Output = Self;
+
+    fn mul(self, rhs: Vec3d) -> Self::Output {
+        Vec3d {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
     }
 }
 
@@ -101,6 +141,34 @@ impl Triangle {
                 y: ((self.c.y + 1.0) * 0.3) * SCREEN_HEIGHT as f32,
                 z: self.c.z,
             },
+        }
+    }
+
+    fn normal_vector(&self) -> Vec3d {
+        let line_a = Vec3d {
+            x: self.b.x - self.a.x,
+            y: self.b.y - self.a.y,
+            z: self.b.z - self.a.z,
+        };
+        let line_b = Vec3d {
+            x: self.c.x - self.a.x,
+            y: self.c.y - self.a.y,
+            z: self.c.z - self.a.z,
+        };
+        // Consider cross product method on Vec3d ?
+        let product = Vec3d {
+            x: (line_a.y * line_b.z) - (line_a.z * line_b.y),
+            y: (line_a.z * line_b.x) - (line_a.x * line_b.z),
+            z: (line_a.x * line_b.y) - (line_a.y * line_b.x),
+        };
+        // NOT PYTHAG. I thought this was supposed to be pythag. it's not.
+        // Don't rewrite it as pythag
+        let normalization_factor =
+            f32::sqrt(product.x * product.x + product.y * product.y + product.z * product.z);
+        Vec3d {
+            x: product.x / normalization_factor,
+            y: product.y / normalization_factor,
+            z: product.z / normalization_factor,
         }
     }
 
@@ -280,6 +348,8 @@ pub fn main() {
     let video_subsystem = sdl_context.video().unwrap();
     let timer_subsystem = sdl_context.timer().unwrap();
 
+    let camera = Vec3d::default();
+
     let window = video_subsystem
         .window("cube rotating", SCREEN_WIDTH, SCREEN_HEIGHT)
         .position_centered()
@@ -295,12 +365,12 @@ pub fn main() {
 
         let theta = 1.0 + 0.001 * timer_subsystem.ticks64() as f32;
         for tri in Mesh::unit_cube().0.iter() {
-            tri.rotate_z(theta)
-                .rotate_x(theta)
-                .translate()
-                .project()
-                .scale()
-                .draw(&mut canvas);
+            let triange = tri.rotate_z(theta).rotate_x(theta).translate();
+
+            // If visible...
+            if triange.normal_vector().dot_product(triange.a - camera) < 0. {
+                triange.project().scale().draw(&mut canvas);
+            }
         }
 
         canvas.present();
