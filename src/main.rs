@@ -1,9 +1,9 @@
 extern crate sdl2;
 
-use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::video::Window;
+use sdl2::{event::Event, gfx::primitives::DrawRenderer};
 use std::ops::{Add, Mul, Sub};
 
 const Z_NEAR: f32 = 0.1;
@@ -81,18 +81,43 @@ impl Triangle {
         Triangle { a, b, c }
     }
 
-    fn draw(&self, canvas: &mut sdl2::render::Canvas<Window>) {
+    /*
+    fn draw_wireframe(&self, canvas: &mut sdl2::render::Canvas<Window>) {
         canvas.set_draw_color(Color::MAGENTA);
         canvas
-            .draw_fline((self.a.x, self.a.y), (self.b.x, self.b.y))
+            .draw_line(
+                (self.a.x as i32, self.a.y as i32),
+                (self.b.x as i32, self.b.y as i32),
+            )
             .unwrap();
         canvas.set_draw_color(Color::GREEN);
         canvas
-            .draw_fline((self.b.x, self.b.y), (self.c.x, self.c.y))
+            .draw_line(
+                (self.b.x as i32, self.b.y as i32),
+                (self.c.x as i32, self.c.y as i32),
+            )
             .unwrap();
         canvas.set_draw_color(Color::CYAN);
         canvas
-            .draw_fline((self.c.x, self.c.y), (self.a.x, self.a.y))
+            .draw_line(
+                (self.c.x as i32, self.c.y as i32),
+                (self.a.x as i32, self.a.y as i32),
+            )
+            .unwrap();
+    }
+    */
+
+    fn draw_filled(&self, canvas: &mut ::sdl2::render::Canvas<Window>) {
+        canvas
+            .filled_trigon(
+                self.a.x as i16,
+                self.a.y as i16,
+                self.b.x as i16,
+                self.b.y as i16,
+                self.c.x as i16,
+                self.c.y as i16,
+                Color::WHITE,
+            )
             .unwrap();
     }
 
@@ -108,17 +133,17 @@ impl Triangle {
         Self {
             a: Vec3d {
                 x: self.a.x + 1.0,
-                y: self.a.y,
+                y: self.a.y + 1.0,
                 z: self.a.z + 2.0,
             },
             b: Vec3d {
                 x: self.b.x + 1.0,
-                y: self.b.y,
+                y: self.b.y + 1.0,
                 z: self.b.z + 2.0,
             },
             c: Vec3d {
                 x: self.c.x + 1.0,
-                y: self.c.y,
+                y: self.c.y + 1.0,
                 z: self.c.z + 2.0,
             },
         }
@@ -369,7 +394,7 @@ pub fn main() {
 
             // If visible...
             if triange.normal_vector().dot_product(triange.a - camera) < 0. {
-                triange.project().scale().draw(&mut canvas);
+                triange.project().scale().draw_filled(&mut canvas);
             }
         }
 
