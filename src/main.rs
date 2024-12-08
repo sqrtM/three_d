@@ -16,6 +16,11 @@ pub fn main() {
     let timer_subsystem = sdl_context.timer().unwrap();
 
     let camera = Point3d::default();
+    let directional_light = Point3d {
+        x: 0.,
+        y: 0.,
+        z: -1.,
+    };
 
     let window = video_subsystem
         .window("cube rotating", SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -36,7 +41,11 @@ pub fn main() {
 
             // If visible...
             if triangle.normal_vector().dot_product(triangle.a - camera) < 0. {
-                triangle.project().scale().draw_filled(&mut canvas);
+                let alpha = (triangle
+                    .normal_vector()
+                    .dot_product(directional_light.normalize())
+                    * 255.) as u8;
+                triangle.project().scale().draw_filled(&mut canvas, alpha);
             }
         }
 

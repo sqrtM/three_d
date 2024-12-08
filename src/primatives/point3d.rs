@@ -17,6 +17,15 @@ impl Point3d {
     pub(crate) fn dot_product(&self, rhs: Point3d) -> f32 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
+
+    pub(crate) fn normalize(&self) -> Self {
+        let normalization_factor = f32::sqrt(self.x * self.x + self.y * self.y + self.z * self.z);
+        Point3d {
+            x: self.x / normalization_factor,
+            y: self.y / normalization_factor,
+            z: self.z / normalization_factor,
+        }
+    }
 }
 
 impl Add<Point3d> for Point3d {

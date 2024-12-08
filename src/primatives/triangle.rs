@@ -44,7 +44,7 @@ impl Triangle {
     }
     */
 
-    pub(crate) fn draw_filled(&self, canvas: &mut ::sdl2::render::Canvas<Window>) {
+    pub(crate) fn draw_filled(&self, canvas: &mut ::sdl2::render::Canvas<Window>, alpha: u8) {
         canvas
             .filled_trigon(
                 self.a.x as i16,
@@ -53,7 +53,7 @@ impl Triangle {
                 self.b.y as i16,
                 self.c.x as i16,
                 self.c.y as i16,
-                Color::WHITE,
+                Color::RGBA(20, 50, 100, alpha),
             )
             .unwrap();
     }
@@ -118,21 +118,13 @@ impl Triangle {
             y: self.c.y - self.a.y,
             z: self.c.z - self.a.z,
         };
-        // Consider cross product method on Vec3d ?
-        let product = Point3d {
+        // Normalize cross product
+        Point3d {
             x: (line_a.y * line_b.z) - (line_a.z * line_b.y),
             y: (line_a.z * line_b.x) - (line_a.x * line_b.z),
             z: (line_a.x * line_b.y) - (line_a.y * line_b.x),
-        };
-        // NOT PYTHAG. I thought this was supposed to be pythag. it's not.
-        // Don't rewrite it as pythag
-        let normalization_factor =
-            f32::sqrt(product.x * product.x + product.y * product.y + product.z * product.z);
-        Point3d {
-            x: product.x / normalization_factor,
-            y: product.y / normalization_factor,
-            z: product.z / normalization_factor,
         }
+        .normalize()
     }
 
     pub(crate) fn rotate_z(&self, theta: f32) -> Self {
