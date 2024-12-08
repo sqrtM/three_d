@@ -18,7 +18,6 @@ impl Triangle {
         Triangle { a, b, c }
     }
 
-    /*
     pub(crate) fn draw_wireframe(&self, canvas: &mut sdl2::render::Canvas<Window>) {
         canvas.set_draw_color(Color::MAGENTA);
         canvas
@@ -42,7 +41,6 @@ impl Triangle {
             )
             .unwrap();
     }
-    */
 
     pub(crate) fn draw_filled(&self, canvas: &mut ::sdl2::render::Canvas<Window>, alpha: u8) {
         canvas
@@ -53,7 +51,7 @@ impl Triangle {
                 self.b.y as i16,
                 self.c.x as i16,
                 self.c.y as i16,
-                Color::RGBA(20, 50, 100, alpha),
+                Color::RGBA(255, 255, 0, alpha),
             )
             .unwrap();
     }
@@ -66,22 +64,22 @@ impl Triangle {
         }
     }
 
-    pub(crate) fn translate(&self) -> Self {
+    pub(crate) fn translate(&self, x: f32, y: f32, z: f32) -> Self {
         Self {
             a: Point3d {
-                x: self.a.x + 1.0,
-                y: self.a.y + 1.0,
-                z: self.a.z + 2.0,
+                x: self.a.x + x,
+                y: self.a.y + y,
+                z: self.a.z + z,
             },
             b: Point3d {
-                x: self.b.x + 1.0,
-                y: self.b.y + 1.0,
-                z: self.b.z + 2.0,
+                x: self.b.x + x,
+                y: self.b.y + y,
+                z: self.b.z + z,
             },
             c: Point3d {
-                x: self.c.x + 1.0,
-                y: self.c.y + 1.0,
-                z: self.c.z + 2.0,
+                x: self.c.x + x,
+                y: self.c.y + y,
+                z: self.c.z + z,
             },
         }
     }
